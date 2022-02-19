@@ -16,10 +16,17 @@ class Tanks(Game):
         super().init()
 
         #----------------------------------------
+        #               Window
+        #----------------------------------------
+        
+        self.window.set_title("Tanks!")
+
+        #----------------------------------------
         #            Create world
         #----------------------------------------
+        #world = World()
         player = Player()
-
+        self.add_obj(player)
 
         #----------------------------------------
         #            Register keys
@@ -42,10 +49,22 @@ class Tanks(Game):
         self.key_actions.down( pg.K_SPACE, lambda: player.jump() )
 
     def run(self):
-        self.running = True
+        super().run()
+        self.running = True  # this is never set False...
         while self.running:
             self.loop()
 
+    def update(self):
+        super().update()
+
+    def render(self):
+        super().render()
+        pg.display.update()
+
     def loop(self):
         """ . """
+        print(self.delta)
         self.handle_events()
+        self.update()
+        self.render()
+        self.tick()

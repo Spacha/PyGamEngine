@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-This module is a sample game that is developed along with the engine.
+This module runs a sample game that is developed along with the engine.
 """
 from Tanks import Tanks
 
@@ -8,7 +8,7 @@ def main():
     """ Main entry point of the app """
 
     SCR_SIZE = (800, 600)
-    MAX_FPS  = 100
+    MAX_FPS  = 60.0
 
     tanks_game = Tanks(scr_size = SCR_SIZE, max_fps = MAX_FPS)
     tanks_game.init()
