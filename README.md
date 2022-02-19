@@ -1,6 +1,23 @@
 # PyGamEngine
 A simple 2D game engine implemented in python using Pygame 2.
 
+## Requirements
+Refer to `requirements.txt`.
+
+## Usage
+Install the requirements:
+```shell
+$ pip3 install -r requirements.txt
+```
+Run the tests:
+```shell
+$ pytest
+```
+Run the 'Tanks' game:
+```shell
+$ python3 main.py
+```
+
 # Architecture
 
 ## Game
