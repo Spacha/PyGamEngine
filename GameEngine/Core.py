@@ -57,16 +57,22 @@ class Game:
 
     def update(self):
         """ Master update. """
+        # 1. Move non-static objects
+        # 2. Check collisions --> correct positions
         pass
 
     #----------------------------------------
-    #             Rendering
+    #              Rendering
     #----------------------------------------
 
-    def render(self):
-        """ Master render. """
+    def draw(self):
+        """ Master draw. """
         self.scr.fill(( 0 , 0 , 0 ))
-        pass
+
+        # Draw the world...
+        
+        pg.display.update()
+
     #----------------------------------------
     #          Object management
     #----------------------------------------
@@ -88,13 +94,13 @@ class Game:
     #----------------------------------------
     
     def register_actions(self):
+        """ . """
         self.actions.register(pg.QUIT,               self.quit)
         self.actions.register(pg.KEYDOWN,            self.handle_keydown)
         self.actions.register(pg.KEYUP,              self.handle_keyup)
         self.actions.register(pg.MOUSEMOTION,        self.handle_mousemove)
         self.actions.register(pg.MOUSEBUTTONDOWN,    self.handle_mousedown)
         self.actions.register(pg.MOUSEBUTTONUP,      self.handle_mouseup)
-        pass
 
     def handle_events(self):
         self.actions.handle( pg.event.get() )

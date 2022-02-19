@@ -57,14 +57,9 @@ class Tanks(Game):
     def update(self):
         super().update()
 
-    def render(self):
-        super().render()
-        pg.display.update()
-
     def loop(self):
         """ . """
-        print(self.delta)
         self.handle_events()
         self.update()
-        self.render()
+        self.draw()
         self.tick()
