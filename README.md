@@ -49,3 +49,12 @@ Describes a solid object's area of collision.
 
 ## World map (ground)
 The world map must have different collision detection. I would love to have destructable ground. It could be stored as a matrix of integers, where different integer represent different material (non-destructable, destructable, air). Each integer would have a ground element associated with, each having their own color/texture, hardness and solidity.
+
+## Coordinates
+World coordinates <-> Screen coordinates. Screen dimensions are specified in the initialization. World dimensions are specified when the world is being set up.
+* Screen coordinates:
+  * Drawing
+  * Catching mouse input
+* World coordinates
+  * Physics (collision, position, velocity, ...)
+Requires methods for converting between the two coordinate systems. Implementation of camera system (world flowing past screen boundary) should be possible.
