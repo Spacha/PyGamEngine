@@ -135,12 +135,32 @@ class AppState: # abstract
 
 class UIElement:
     def __init__(self):
-        pass
+        self.mouse_interactive = False
     def make_graphic(self):
         pass
-class Button(UIElement):
+class InteractiveUIElement(UIElement):
+    def __init__(self, callback):
+        self.mouse_interactive = True
+        self.callback = callback
+        self.hovered = False
+        self.pressed = False
+    def mouse_enter(self, buttons):
+        print("Enter Button!")
+        self.hovered = True
+    def mouse_leave(self, buttons):
+        print("Leave Button!")
+        self.hovered = False
+    def mouse_press(self, button):
+        print("Press Button!")
+        self.pressed = True
+    def mouse_release(self, button):
+        print("Release Button!")
+        self.pressed = False
+    def click(self): # mouse released on button
+        self.callback()
+class Button(InteractiveUIElement):
     def __init__(self, text, pos, callback):
-        self.mouse_interactive = True  # should be required by UIElement
+        super().__init__(callback)
         self.text = text
         self.x, self.y = pos
         self.callback = callback
@@ -150,23 +170,18 @@ class Button(UIElement):
         self.content = self.font.render(self.text, True, Colors.BLACK)
         self.size = self.content.get_size()
         self.surface = pg.Surface(self.size)
-        self.surface.fill(Colors.WHITE)
-        self.surface.blit(self.content, (0, 0))
-        self.rect = pg.Rect(self.x, self.y, self.size[0], self.size[1])
+        self.update_surface()
         self.width, self.height = self.size
-    def hover(self, buttons): # mouse hovers the button
-        print("Hoover")
+    def update_surface(self):
+        self.surface.fill(Colors.WHITE if not self.hovered else Colors.RED)
+        self.surface.blit(self.content, (0, 0))
     def mouse_enter(self, buttons):
-        print("Enter Button!")
+        super().mouse_enter(buttons)
+        self.update_surface()
     def mouse_leave(self, buttons):
-        print("Leave Button!")
-    def mouse_press(self, button):
-        print("Press Button!")
-    def mouse_release(self, button):
-        print("Release Button!")
-        self.click()  # NONONONONONONONONOT HERE!
-    def click(self): # mouse released on button
-        self.callback()
+        super().mouse_leave(buttons)
+        self.update_surface()
+
 class Text(UIElement):
     def __init__(self, text, pos):
         self.mouse_interactive = False  # should be required by UIElement
@@ -197,27 +212,23 @@ class MainMenu(AppState):
         self.elements = []
     def init(self, app):
         self.app = app
-        '''
-        Mouse:
-            Mouse moves --> check if any mouse-interactive GraphicsObject is under it. If so, call 'hover'.
-            Mouse clicks --> check if any mouse-interactive GraphicsObject is currently hovered. If so, it's 'pressed'.
-            Mouse releases --> check if any mouse-interactive GraphicsObject is currently hovered and 'pressed'. If so, call 'click'.
-        '''
-        self.app.mouse_actions.move(self.mouse_moved)
-        self.app.mouse_actions.down(self.mouse_down)
-        self.hovered = []
-        self.pressed = []
-
+        self.app.mouse_actions.move(self.mouse_moved)  # MouseUI
+        self.app.mouse_actions.down(self.mouse_down)   # MouseUI
+        self.app.mouse_actions.up(self.mouse_up)       # MouseUI
+        self.hovered = []  # MouseUI
+        self.pressed = []  # MouseUI
         self.fps_text = Text("", (70, 10))
         self.elements += [
             self.fps_text,
-            Button("Lobby", (10, 10), callback=self.go_lobby),
-            Button("Exit",  (10, 40), callback=self.go_quit)
+            Button("Lobby", (10, 10), callback=self.go_lobby),  # MouseUI
+            Button("Exit",  (10, 40), callback=self.go_quit)  # MouseUI
         ]
         print("MainMenu initialized")
     def state_enter(self, prev_state):
+        # start capturing input
         pass
     def state_leave(self, next_state):
+        # stop capturing input
         pass
     def update(self, delta):
         # TODO: use custom events
@@ -228,6 +239,7 @@ class MainMenu(AppState):
         for elem in self.elements:
             scr.blit(elem.surface, (elem.x, elem.y))
 
+    ### TODO: Mouse actions in a UI mouse handler ###
     def mouse_moved(self, pos, rel, buttons):
         # print(pos, rel, buttons)
         for elem in self.elements:
@@ -254,12 +266,12 @@ class MainMenu(AppState):
                     #elem.hover(button)
 
     def mouse_up(self, pos, button):
-        print(button)
         for elem in self.pressed:  # only check for elements that are currently hovered
             if button == 1:
-                self.pressed.remove(elem) # isn't the fastes't?
+                if elem in self.hovered:  # if still hover --> click
+                    elem.click()
+                self.pressed.remove(elem)
                 elem.mouse_release(button)
-                # TODO: If still hover --> click
 
     ### Actions (callbacks) ###
     def go_lobby(self):
@@ -276,7 +288,8 @@ class GameLobby(AppState):
         self.app = app
         print("GameLobby initialized")
     def state_enter(self, prev_state):
-        pass
+        print("Entered: Game lobby.")
+        self.app.change_state(GameStates.GAME)
     def state_leave(self, next_state):
         pass
     def update(self, delta):
@@ -299,7 +312,7 @@ class Game(AppState):
         self.app = app
         print("Game initialized")
     def state_enter(self, prev_state):
-        pass
+        print("Entered: Game.")
     def state_leave(self, next_state):
         pass
     def update(self, delta):
