@@ -4,19 +4,24 @@ from GameEngine.EventHandling import EventActions, KeyboardActions
 from GameEngine.utils import Colors
 
 class Application:
-    def __init__(self, scr_size, fps, state_machine):
+    def __init__(self, scr_size, max_fps, state_machine):
         self.scr_size = scr_size
-        self.fps = fps
+        self.max_fps = max_fps
         pg.init()
         self.scr = pg.display.set_mode(self.scr_size)
         self.clock = pg.time.Clock()
         self.started_at = time.time()
+        self.delta = 1.0
         self.state = state_machine
         self.actions = EventActions()
         self.key_actions = KeyboardActions()
         self.register_actions()
+        # init states
         print("Game (Pygame) initialized.")
+        for state, state_handler in self.state.get_states().items():
+            state_handler.init(self)
     def start(self):
+        self.frame = 0 # handle large frame number wrapover!
         self.state.start()
         self.is_running = True
         self.main_loop()
@@ -24,15 +29,22 @@ class Application:
         pass
     def update(self):
         #if self.in_game: game.update(self.delta)
+        self.scr.fill(Colors.BLACK)
         self.state.handler().update(self.scr)  # pass update event to the state
         pass
     def draw(self):
         #if self.in_game: game.draw(self.scr)
         self.state.handler().draw(self.scr)  # pass draw event to the state
+        pg.display.update()
         pass
     def tick(self):
-        self.clock.tick()
-        self.delta = self.clock.get_time() / 1000.0
+        self.frame += 1
+        # ticks the clock and returns the delta time
+        self.delta = self.clock.tick(self.max_fps) / 1000.0
+        #self.delta = self.clock.get_time() / 1000.0
+    def actual_fps(self):
+        # return 1.0 / self.delta
+        return self.clock.get_fps()
     def main_loop(self):
         while self.is_running:
             self.handle_events()
@@ -74,6 +86,8 @@ class Application:
 class StateMachine:
     def __init__(self):
         self.state_handlers = {}
+    def get_states(self):
+        return self.state_handlers
     def set_start(self, start):
         self._start = start
     def start(self):
@@ -102,8 +116,8 @@ class StateMachine:
 class AppState: # abstract
     def __init__(self):                 # initializes the state (not in use yet!)
         pass
-    #def init(self):                     # initializes the components of the state -> game is already initialized!
-    #    raise NotImplementedError
+    def init(self):                     # initializes the components of the state -> game is already initialized!
+        raise NotImplementedError
     def state_enter(self, prev_state):  # the state is being entered
         raise NotImplementedError
     def state_leave(self, next_state):  # the state is being left
@@ -117,15 +131,18 @@ class AppState: # abstract
 # Game-specific
 ################################################################################
 
-class Button:
+class GraphicsObject:
+    def make_graphic(self):
+        pass
+class Button(GraphicsObject):
     def __init__(self, text, pos, callback):
         self.text = text
         self.x, self.y = pos
         self.callback = callback
-        self.make_button()
-    def make_button(self):
+        self.make_graphic()
+    def make_graphic(self):
         self.font = pg.font.SysFont("segoeui", 18)
-        self.content = self.font.render(self.text, 1, Colors.BLACK)
+        self.content = self.font.render(self.text, True, Colors.BLACK)
         self.size = self.content.get_size()
         self.surface = pg.Surface(self.size)
         self.surface.fill(Colors.WHITE)
@@ -133,6 +150,22 @@ class Button:
         self.rect = pg.Rect(self.x, self.y, self.size[0], self.size[1])
     def mouse_hit(self, button):
         pass
+class Text(GraphicsObject):
+    def __init__(self, text, pos):
+        self.text = text
+        self.x, self.y = pos
+        self.make()
+    def make(self):
+        self.font = pg.font.SysFont("segoeui", 26)
+        self.update_surface()
+        #self.rect = self.content.get_rect()
+        #self.surface = pg.Surface(self.size)
+        #self.surface.blit(self.content, (0, 0))
+    def update_surface(self):
+        self.surface = self.font.render(self.text, True, Colors.WHITE)
+    def set_text(self, text):
+        self.text = text
+        self.update_surface()
 
 from enum import Enum, auto
 class GameStates(Enum):
@@ -142,21 +175,28 @@ class GameStates(Enum):
 
 class MainMenu(AppState):
     def __init__(self):
-        self.buttons = []
-    def init(self):
-        self.buttons += [
+        self.elements = []
+    def init(self, app):
+        self.app = app
+        self.fps_text = Text("", (70, 10))
+        self.elements += [
+            self.fps_text,
             Button("Lobby", (10, 10), callback=self.go_lobby),
             Button("Exit",  (10, 40), callback=self.go_quit)
         ]
+        print("MainMenu initialized")
     def state_enter(self, prev_state):
-        self.init()
+        pass
     def state_leave(self, next_state):
         pass
     def update(self, delta):
-        pass
+        # TODO: use custom events
+        if self.app.frame % 100:
+            self.fps_text.set_text( "FPS: {}".format(round(self.app.actual_fps())) )
+
     def draw(self, scr):
-        for button in self.buttons:
-            scr.blit(button.surface, (button.x, button.y))
+        for elem in self.elements:
+            scr.blit(elem.surface, (elem.x, elem.y))
     def add_obj(self, obj):
         pass
     def delete_obj(self, obj_id):
@@ -176,6 +216,9 @@ class MainMenu(AppState):
 class GameLobby(AppState):
     def __init__(self):
         pass
+    def init(self, app):
+        self.app = app
+        print("GameLobby initialized")
     def state_enter(self, prev_state):
         pass
     def state_leave(self, next_state):
@@ -196,6 +239,9 @@ class GameLobby(AppState):
 class Game(AppState):
     def __init__(self):
         self.objects = {}
+    def init(self, app):
+        self.app = app
+        print("Game initialized")
     def state_enter(self, prev_state):
         pass
     def state_leave(self, next_state):
