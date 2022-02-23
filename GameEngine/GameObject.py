@@ -1,3 +1,5 @@
+# NOTE: Not in the core of the engine; rather in Physics section.
+
 """
 Game object...
 """

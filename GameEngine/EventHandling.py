@@ -77,3 +77,60 @@ class MouseActions:
     def handle_up(self, pos, button):
         for handler in self.up_handlers:
             handler(pos, button)
+
+"""
+Inherit this in your state if you want to have mouse interaction in GUI.
+"""
+class UIMouseHandler:
+    def __init__(self):
+        self.hovered = []
+        self.pressed = []
+        self.key_actions = KeyboardActions()
+        self.mouse_actions = MouseActions()
+
+    def init(self, app):
+        self.mouse_actions.move(self.mouse_moved)
+        self.mouse_actions.down(self.mouse_down)
+        self.mouse_actions.up(self.mouse_up)
+
+    def state_enter(self, prev_state):
+        """
+        When state is entered, reset the state of
+        each interactive UI element.
+        """
+        while self.hovered:
+            self.hovered.pop().reset()
+        while self.pressed:
+            self.pressed.pop().reset()
+
+    def mouse_moved(self, pos, rel, buttons):
+        for elem in self.elements:
+
+            # ABSTRACT THIS IF-ELSE, SAME USED IN OTHERS AS WELL
+
+            if not elem.interactive: continue
+            if (elem.x <= pos[0] <= elem.x + elem.width and
+                elem.y <= pos[1] <= elem.y + elem.height):
+                if elem not in self.hovered:  # element is just entered
+                    self.hovered.append(elem)
+                    elem.mouse_enter(buttons)
+                    #elem.hover(buttons)
+            elif elem in self.hovered:  # element not under mouse
+                self.hovered.remove(elem) # isn't the fastes't?
+                elem.mouse_leave(buttons)
+
+    def mouse_down(self, pos, button):
+        for elem in self.hovered:  # only check for elements that are currently hovered
+            if button == 1:
+                if elem not in self.pressed:  # element is just entered
+                    self.pressed.append(elem)
+                    elem.mouse_press(button)
+                    #elem.hover(button)
+
+    def mouse_up(self, pos, button):
+        for elem in self.pressed:  # only check for elements that are currently hovered
+            if button == 1:
+                if elem in self.hovered:  # if still hover --> click
+                    elem.click()
+                self.pressed.remove(elem)
+                elem.mouse_release(button)
