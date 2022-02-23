@@ -13,7 +13,7 @@ class UIElement:
 Interactive UI element.
 """
 class InteractiveUIElement(UIElement):
-    def __init__(self, callback):
+    def __init__(self, callback=None):
         super().__init__()
         self.interactive = True
         self.callback = callback
@@ -28,7 +28,8 @@ class InteractiveUIElement(UIElement):
     def mouse_release(self, button):
         self.pressed = False
     def click(self): # mouse released on button
-        self.callback()
+        if self.callback:
+            self.callback()
 
 """
 A clickable button.

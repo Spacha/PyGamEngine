@@ -1,5 +1,5 @@
 import pygame as pg
-from GameObjects.Player import *
+from GameObjects.Tank import *
 
 from GameEngine.Core import Game
 
@@ -25,7 +25,7 @@ class Tanks(Game):
         #            Create world
         #----------------------------------------
         #world = World()
-        player = Player()
+        player = Tank()
         self.add_obj(player)
 
         #----------------------------------------

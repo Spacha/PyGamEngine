@@ -1,5 +1,5 @@
 from math import sin, cos, sqrt
-from utils import unsupported
+from GameEngine.utils import unsupported
 
 """
 2D Vector.

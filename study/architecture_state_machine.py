@@ -1,5 +1,6 @@
 import sys, time
 import pygame as pg
+from enum import Enum, auto
 
 from GameEngine.utils import Colors
 from GameEngine.Application import Application
@@ -16,7 +17,6 @@ from UserInterface.UIElements import Button, Text
 # Game-specific
 ################################################################################
 
-from enum import Enum, auto
 class GameStates(Enum):
     MAIN_MENU  = auto()
     GAME_LOBBY = auto()
@@ -95,6 +95,7 @@ class Game(AppState, UIMouseHandler):
         UIMouseHandler.__init__(self)
         self.objects = {}
         self.elements = []
+
     def init(self, app):
         UIMouseHandler.init(self, app)
         self.app = app
@@ -106,13 +107,17 @@ class Game(AppState, UIMouseHandler):
         print("Entered: Game.")
 
     def state_leave(self, next_state):
+        if next_state == GameStates.MAIN_MENU:
+            print("Going to main menu")
+        else:
+            print("Wonder where you're going...")
         pass
 
     def update(self, delta):
         pass
 
     def draw(self, scr):
-        pass
+        pg.draw.line(scr, Colors.WHITE, (0,0), (100,100))
 
     def add_obj(self, obj):
         pass
