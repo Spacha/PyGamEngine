@@ -64,22 +64,37 @@ class Application:
         self.actions.register(pg.MOUSEBUTTONUP,      self.handle_mouseup)
     def handle_events(self):
         self.actions.handle( pg.event.get() )
+
+    """ Event Handlers:
+        The basic event handlers (handler_*) first call the current state's own
+        handler and then call the master event handler.
+    """
     def handle_keydown(self, event):
         code, key, mod = event.unicode, event.key, event.mod
-        self.key_actions.handle_down(code, key, mod)
+        for handler in [self.state.handler(), self]:
+            handler.key_actions.handle_down(code, key, mod)
+
     def handle_keyup(self, event):
         key, mod = event.key, event.mod
-        self.key_actions.handle_up(key, mod)
+        for handler in [self.state.handler(), self]:
+            handler.key_actions.handle_up(code, key, mod)
+
     def handle_mousemove(self, event):
         pos, rel = event.pos, event.rel
         buttons = event.buttons
-        self.mouse_actions.handle_moved(pos, rel, buttons)
+        for handler in [self.state.handler(), self]:
+            handler.mouse_actions.handle_moved(pos, rel, buttons)
+
     def handle_mousedown(self, event):
         pos, button = event.pos, event.button
-        self.mouse_actions.handle_down(pos, button)
+        for handler in [self.state.handler(), self]:
+            handler.mouse_actions.handle_down(pos, button)
+
     def handle_mouseup(self, event):
         pos, button = event.pos, event.button
-        self.mouse_actions.handle_up(pos, button)
+        for handler in [self.state.handler(), self]:
+            handler.mouse_actions.handle_up(pos, button)
+
     def quit(self, event=None):
         """ Graceful exit from the game. """
         pg.quit()
@@ -117,7 +132,8 @@ class StateMachine:
 
 class AppState: # abstract
     def __init__(self):                 # initializes the state (not in use yet!)
-        pass
+        self.key_actions = KeyboardActions()
+        self.mouse_actions = MouseActions()
     def init(self):                     # initializes the components of the state -> game is already initialized!
         raise NotImplementedError
     def state_enter(self, prev_state):  # the state is being entered
@@ -209,12 +225,13 @@ class GameStates(Enum):
 
 class MainMenu(AppState):
     def __init__(self):
+        super().__init__()
         self.elements = []
     def init(self, app):
         self.app = app
-        self.app.mouse_actions.move(self.mouse_moved)  # MouseUI
-        self.app.mouse_actions.down(self.mouse_down)   # MouseUI
-        self.app.mouse_actions.up(self.mouse_up)       # MouseUI
+        self.mouse_actions.move(self.mouse_moved)  # MouseUI
+        self.mouse_actions.down(self.mouse_down)   # MouseUI
+        self.mouse_actions.up(self.mouse_up)       # MouseUI
         self.hovered = []  # MouseUI
         self.pressed = []  # MouseUI
         self.fps_text = Text("", (70, 10))
@@ -283,7 +300,7 @@ class MainMenu(AppState):
 
 class GameLobby(AppState):
     def __init__(self):
-        pass
+        super().__init__()
     def init(self, app):
         self.app = app
         print("GameLobby initialized")
@@ -307,6 +324,7 @@ class GameLobby(AppState):
 
 class Game(AppState):
     def __init__(self):
+        super().__init__()
         self.objects = {}
     def init(self, app):
         self.app = app
