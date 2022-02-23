@@ -77,7 +77,7 @@ class Application:
     def handle_keyup(self, event):
         key, mod = event.key, event.mod
         for handler in [self.state.handler(), self]:
-            handler.key_actions.handle_up(code, key, mod)
+            handler.key_actions.handle_up(key, mod)
 
     def handle_mousemove(self, event):
         pos, rel = event.pos, event.rel
@@ -151,12 +151,12 @@ class AppState: # abstract
 
 class UIElement:
     def __init__(self):
-        self.mouse_interactive = False
+        self.interactive = False
     def make_graphic(self):
         pass
 class InteractiveUIElement(UIElement):
     def __init__(self, callback):
-        self.mouse_interactive = True
+        self.interactive = True
         self.callback = callback
         self.hovered = False
         self.pressed = False
@@ -181,6 +181,10 @@ class Button(InteractiveUIElement):
         self.x, self.y = pos
         self.callback = callback
         self.make_graphic()
+    def reset(self):  # common for all interactives
+        self.hovered = False
+        self.pressed = False
+        self.update_surface()
     def make_graphic(self):
         self.font = pg.font.SysFont("segoeui", 18)
         self.content = self.font.render(self.text, True, Colors.BLACK)
@@ -200,7 +204,7 @@ class Button(InteractiveUIElement):
 
 class Text(UIElement):
     def __init__(self, text, pos):
-        self.mouse_interactive = False  # should be required by UIElement
+        self.interactive = False  # should be required by UIElement
         self.text = text
         self.x, self.y = pos
         self.make()
@@ -214,6 +218,7 @@ class Text(UIElement):
         self.surface = self.font.render(self.text, True, Colors.WHITE)
         self.width, self.height = self.surface.get_size()
     def set_text(self, text):
+        if text == self.text: return  # don't bother
         self.text = text
         self.update_surface()
 
@@ -232,8 +237,6 @@ class MainMenu(AppState):
         self.mouse_actions.move(self.mouse_moved)  # MouseUI
         self.mouse_actions.down(self.mouse_down)   # MouseUI
         self.mouse_actions.up(self.mouse_up)       # MouseUI
-        self.hovered = []  # MouseUI
-        self.pressed = []  # MouseUI
         self.fps_text = Text("", (70, 10))
         self.elements += [
             self.fps_text,
@@ -243,7 +246,13 @@ class MainMenu(AppState):
         print("MainMenu initialized")
     def state_enter(self, prev_state):
         # start capturing input
-        pass
+        self.hovered = []  # MouseUI
+        self.pressed = []  # MouseUI
+        for elem in self.elements:
+            if elem.interactive:
+                print("reset", elem)
+                elem.reset()
+
     def state_leave(self, next_state):
         # stop capturing input
         pass
@@ -263,7 +272,7 @@ class MainMenu(AppState):
 
             # ABSTRACT THIS IF-ELSE, SAME USED IN OTHERS AS WELL
 
-            if not elem.mouse_interactive: continue
+            if not elem.interactive: continue
             if (elem.x <= pos[0] <= elem.x + elem.width and
                 elem.y <= pos[1] <= elem.y + elem.height):
                 if elem not in self.hovered:  # element is just entered
@@ -328,6 +337,7 @@ class Game(AppState):
         self.objects = {}
     def init(self, app):
         self.app = app
+        self.key_actions.down(pg.K_ESCAPE, self.go_main_menu)
         print("Game initialized")
     def state_enter(self, prev_state):
         print("Entered: Game.")
@@ -345,6 +355,8 @@ class Game(AppState):
         pass
     def delete_particle(self, particle_id):
         pass
+    def go_main_menu(self):
+        self.app.change_state(GameStates.MAIN_MENU)
 
 state_machine = StateMachine()
 state_machine.define_state(GameStates.MAIN_MENU,  MainMenu())

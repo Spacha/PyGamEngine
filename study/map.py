@@ -103,7 +103,7 @@ ball = np.array([
 ])
 map.change_at(5, 5, ball)
 '''
-class Application:
+class Game:
     def __init__(self, scr_size, fps):
         self.scr_size = scr_size
         self.fps = fps
@@ -118,28 +118,8 @@ class Application:
         self.background_clr = Colors.BLACK
         self.font_main = pg.font.SysFont('segoeui', 26)
 
-        self.state = GameState.MAIN_MENU
-
-    def update():
-        #
-        # update application here...
-        #
-        if self.state in [GameState.MATCH, GameState.MATCH_PAUSE]:
-            self.game.update()
-
-    def draw():
-        #
-        # draw application here...
-        #
-        if self.state in [GameState.MATCH, GameState.MATCH_PAUSE]:
-            self.game.draw()
-
-class Game:
-    def __init__(self, match_settings):
-        #self.create_map('testmap.png')
+        self.create_map('study/testmap.png')
         #self.create_map('large.png')
-        self.match_settings = match_settings
-        self.state.next = GameState.MAIN_MENU
 
     def create_map(self, filename):
         map_img = pg.image.load( os.path.join(*filename.split('/')) )
@@ -149,7 +129,7 @@ class Game:
         self.match_settings = settings
 
     def update(self):
-
+        pass
     def draw(self):
         self.scr.fill(self.background_clr)
         
