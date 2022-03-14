@@ -45,7 +45,7 @@ class Map:
 
     def erode_at(self, x, y, weights):
         """
-        Erodes non-transparent materials on the map base don the 
+        Erodes non-transparent materials on the map based on the 
         """
         for (change_x, change_y), data in np.ndenumerate(change):
             self.data[y + change_y, x + change_x] = data
@@ -161,6 +161,8 @@ while not exit:
             # emergency exit
             if event.key == pg.K_q:
                 exit = True
+            elif event.key == pg.K_e:
+                pass
 
     game.update()
     game.draw()
