@@ -10,7 +10,7 @@ class BoundingBox:
 		pass
 
 class GameObject:
-	def __init__(self, x, y):
+	def __init__(self, x=0, y=0):
 		print("Invoked GameObject.")
 		self.position = Vector(x, y)
 		self.velocity = Vector(0, 0)

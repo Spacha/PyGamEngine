@@ -1,3 +1,4 @@
+from math import radians
 from GameEngine.GameObject import *
 from GameEngine.Math import Vector
 
@@ -29,8 +30,11 @@ class Tank(GameObject):
         super().__init__()
         print("Invoked Player.")
 
+        self.width = 30
+        self.height = 10
+
         # Barrel
-        self.barrel = Barrel(0, self.top)  # place the barrel to the top-middle of the tank
+        self.barrel = Barrel(0, -self.height / 2, 10)  # place the barrel to the top-middle of the tank
         
         self.fire_power = 100.0
 
@@ -62,8 +66,9 @@ class Tank(GameObject):
         self.aim_rate += (-1 if aim else 1) * self.max_aim_rate
 
     def shoot(self):
-        projectile = ExplosiveProjectile()
-        projectile.set_position(self.barrel.tip_position())
-        projectile.set_velocity(self.velocity + self.barrel.direction() * self.fire_power)
+        print("Shooting!")
+        #projectile = ExplosiveProjectile()
+        #projectile.set_position(self.barrel.tip_position())
+        #projectile.set_velocity(self.velocity + self.barrel.direction() * self.fire_power)
 
-        self.game.add_obj(projectile)
+        #self.game.add_obj(projectile)
